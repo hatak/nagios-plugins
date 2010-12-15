@@ -6,7 +6,7 @@
 #       AUTHOR:  HATAKEYAMA Hisashi (hatak), id.hatak@gmail.com
 #      CREATED:  2010/12/14 15:03:19
 #
-#  Last Change:  2010/12/14 21:03:35 .
+#  Last Change:  2010/12/15 21:21:44 .
 #
 #===============================================================================
 
@@ -19,7 +19,6 @@ use Pod::Usage 'pod2usage';
 use vars qw($VERSION);
 our $VERSION = '0.01';
 
-use constant DATE   => '/bin/date';
 use constant TAIL   => '/usr/bin/tail';
 use constant ROWS   => 100;
 use constant ERRORS => { 'OK' => '0', 'WARNING' => '1', 'CRITICAL' => '2', 'UNKNOWN' => '3', };
@@ -46,15 +45,14 @@ sub main {
 
     for (@lines) {
         if (/^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}),\d{3}.*$args->{pattern}/) {
-            $state = 'OK';
             my $lasttime = _timelocal($1);
-            my $currenttime = `DATE "+%s"`;
+            my $currenttime = `/bin/date "+%s"`;
             chomp $currenttime;
 
             my $diff = $currenttime - $lasttime;
-            if ($args->{c} < $diff) {
+            if ($args->{c} <= $diff) {
                 $state = 'CRITICAL';
-            } elsif ($args->{w} < $diff) {
+            } elsif ($args->{w} <= $diff) {
                 $state = 'WARNING';
             } else {
                 $state = 'OK';
@@ -70,7 +68,7 @@ sub main {
 
 sub _timelocal {
     my $date = shift;
-    my $result = `DATE -j -f "%Y-%m-%d %H:%M:%S" "$date" "+%s"`;
+    my $result = `/bin/date "+%s" --date "$date"`;
     chomp $result;
     return $result;
 }
